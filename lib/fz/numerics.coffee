@@ -24,14 +24,11 @@ class Connection
   slice: (timeseries, args..., callback) ->
     this.query(['slice', timeseries, this.parse_time_args(args)...], false, callback) ##@@ support keepalive
 
-  times: (timeseries, args..., callback) ->
-    this.query(['times', timeseries, this.parse_time_args(args)...], false, callback) ##@@ support keepalive
-
-  values: (timeseries, args..., callback) ->
-    this.query(['values', timeseries, this.parse_time_args(args)...], false, callback) ##@@ support keepalive
-
   range: (timeseries, args..., callback) ->
     this.query(['range', timeseries, this.parse_number_args(args)...], false, callback) ##@@ support keepalive
+
+  derive: (timeseries, derivation_spec, args..., callback) ->
+    this.query(['derive', timeseries, derivation_spec, this.parse_number_args(args)...], false, callback) ##@@ support keepalive
 
   stats: (timeseries, args..., callback) ->
     this.query(['stats', timeseries, args...], false, callback) ##@@ support keepalive
@@ -161,11 +158,9 @@ class CLI
         this.command(cmd)
       when 'slice'
         this.command(cmd)
-      when 'times'
-        this.command(cmd)
-      when 'values'
-        this.command(cmd)
       when 'range'
+        this.command(cmd)
+      when 'derive'
         this.command(cmd)
       when 'view'
         this.command(cmd)
