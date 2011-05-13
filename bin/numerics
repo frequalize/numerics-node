@@ -1,3 +1,5 @@
 #!/usr/bin/env node
 
-new (require('../lib/fz/numerics').Numerics.CLI)();
+require.paths.unshift( __dirname + '/../lib');
+
+new (require('fz/numerics').Numerics.CLI)();
