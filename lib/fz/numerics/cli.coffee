@@ -32,6 +32,10 @@ class CLI
 
     @cmd = @args.shift()
 
+    if @cmd.match(/\//)
+      @timeseries = ['derivation', @timeseries, @cmd] # cmd is really a derivation spec
+      @cmd = @args.shift()
+
     switch @cmd
       when 'insert'
         this.command()
