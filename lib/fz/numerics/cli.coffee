@@ -45,8 +45,6 @@ class CLI
         this.command()
       when 'range'
         this.command()
-      when 'derive'
-        this.command()
       when 'view'
         this.command()
       when 'stats'
@@ -54,6 +52,8 @@ class CLI
       when 'properties'
         this.command()
       when 'version'
+        this.command()
+      when 'draw'
         this.command()
       when 'watch'
         this.watch_command()
@@ -97,16 +97,18 @@ class CLI
     process.exit()
 
   help: (status) ->
-    sys.puts '''$ numerics [-h -v[v] ] <timeseries> [ <command> [<arg1> ...] ]
+    sys.puts '''$ numerics [-h -v[v] ] <timeseries> [<aggregate>/<timespan>] [ <command> [<arg1> ...] ]
 
                        Commands:
-                         list                                    list your timeseries
-                         insert [number] [time] [properties]     insert a value into the timeseries -- args can be ommited, a missing number means 1, a missing times means now
-                         remove [number] [time] [properties]     remove -- args can only be ommited if the default would match what needs to be removed
-                         stats  [<aggregate>/<timespan>]
-                         properties                              list the properties used in a timeseries
-                         version                                 show the current version of the timeseries (<num of inserts>.<num of removals>)
-                         | view <timeseries> [<aggregate>/<timespan>] [options] | watch <timeseries> [<aggregate>/<timespan>]
+                         list                                        list your timeseries
+                         insert [<number>] [<time>] [<properties>]   insert a value into the timeseries -- args can be ommited, a missing number means 1, a missing times means now
+                         remove [<number>] [<time>] [<properties>]   remove -- args can only be ommited if the default would match what needs to be removed
+                         stats                                       show accumulated stats for timeseries
+                         properties                                  list the properties used in a timeseries
+                         version                                     show the current version of the timeseries (<num of inserts>.<num of removals>)
+                         slice [<start_time>] [<end_time>]           show times, number, properties values
+                         range [<start_index>] [<end_index>]         show times, number, properties values
+                         draw  [<start_time>] [<end_time>]           draw an ascii timeseries (on derived timeseries only)
 
                        Options:
                          -h                                      display this and exit

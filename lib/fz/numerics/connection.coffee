@@ -35,6 +35,9 @@ class Connection
   version: (timeseries, callback) ->
     this.query(['version', timeseries], false, callback)
 
+  draw: (timeseries, args..., callback) ->
+    this.query(['draw', timeseries, args...], false, callback)
+
   parse_time_args: (args) ->
     [number_args, word_args, time_args, json_args] = this.split_args(args)
     (['time', '' + arg] for arg in number_args).concat(['time', '' + arg] for arg in time_args)
