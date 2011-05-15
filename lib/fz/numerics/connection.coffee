@@ -29,6 +29,9 @@ class Connection
   stats: (timeseries, args..., callback) ->
     this.query(['stats', timeseries, args...], false, callback)
 
+  distribution: (timeseries, args..., callback) ->
+    this.query(['distribution', timeseries, args...], false, callback) ##@@ args
+
   properties: (timeseries, callback) ->
     this.query(['properties', timeseries], false, callback)
 
@@ -37,6 +40,9 @@ class Connection
 
   draw: (timeseries, args..., callback) ->
     this.query(['draw', timeseries, args...], false, callback)
+
+  histogram: (timeseries, args..., callback) ->
+    this.query(['histogram', timeseries, args...], false, callback)
 
   parse_time_args: (args) ->
     [number_args, word_args, time_args, json_args] = this.split_args(args)
