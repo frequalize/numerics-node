@@ -60,21 +60,21 @@ class Connection
     if 0 == number_args.length
       number = '1'
     else if 1 == number_args.length
-      number = number_args[0]
+      number = number_args.shift()
     else if 2 == number_args.length
-      number = number_args[0]
-      time = number_args[1]
+      number = number_args.shift()
+      time = number_args.shift()
     else
       throw "bad number of number-like args" ##@@ better errors here
 
     if 1 == word_args.length
-      candidate_time = switch word_args[0]
+      candidate_time = switch word = word_args.shift()
                          when 'now'  ## support more
                            now
                          else
-                           null
+                           throw "unknown arg: #{word}"
       if candidate_time?
-        if  time?
+        if time?
           throw "time found too many times"
         else
           time = candidate_time
@@ -86,12 +86,12 @@ class Connection
       if  time?
         throw "time found too many times"
       else
-        time = time_args[0]
+        time = time_args.shift()
     else if time_args.length > 1
       throw "bad number of time-like args" ##@@ better errors here
 
     if 1 == json_args.length
-      properties = json_args[0]
+      properties = json_args.shift()
     else if json_args.length > 1
       throw "bad number of json-like args" ##@@ better errors here
 
@@ -106,6 +106,9 @@ class Connection
         parsed_args.push(['json', JSON.parse(properties)])
       catch e
         throw "bad json arg: #{properties} : #{e}"
+
+    if number_args.length + word_args.length + time_args.length + json_args.length > 0
+      throw "unknown args"
 
     console.log parsed_args
 
