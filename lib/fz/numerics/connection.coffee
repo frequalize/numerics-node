@@ -14,17 +14,19 @@ class Connection
 
   constructor : () ->
 
+  ## Commands ##
+
   insert: (timeseries, args..., callback) ->
-    this.query(['insert', timeseries, this.parse_write_args(args)...], false, callback) ##@@ support keepalive
+    this.query(['insert', timeseries, this.write_args(args)...], false, callback) ##@@ support keepalive
 
   remove: (timeseries, args..., callback) ->
-    this.query(['remove', timeseries, this.parse_write_args(args)...], false, callback) ##@@ support keepalive
+    this.query(['remove', timeseries, this.write_args(args)...], false, callback) ##@@ support keepalive
 
   slice: (timeseries, args..., callback) ->
-    this.query(['slice', timeseries, this.parse_time_args(args)...], false, callback)
+    this.query(['slice', timeseries, this.time_args(args)...], false, callback)
 
   range: (timeseries, args..., callback) ->
-    this.query(['range', timeseries, this.parse_number_args(args)...], false, callback)
+    this.query(['range', timeseries, this.number_args(args)...], false, callback)
 
   stats: (timeseries, args..., callback) ->
     this.query(['stats', timeseries, args...], false, callback)
@@ -44,60 +46,56 @@ class Connection
   histogram: (timeseries, args..., callback) ->
     this.query(['histogram', timeseries, args...], false, callback)
 
-  parse_time_args: (args) ->
-    [number_args, word_args, time_args, json_args] = this.split_args(args)
-    (['time', '' + arg] for arg in number_args).concat(['time', '' + arg] for arg in time_args)
+  ## Args ##
 
-  parse_number_args: (args) ->
-    [number_args, word_args, time_args, json_args] = this.split_args(args)
+  time_args: (args) ->
+    ['time', '' + arg] for arg in args
+
+  number_args: (args) ->
     ['number', '' + arg] for arg in number_args
 
-  parse_write_args: (args) ->
-    now = new Date()  ## for consistency among the ways to default to now
+  write_args: (args) ->
+    now = new Date().toString()
 
-    [number_args, word_args, time_args, json_args] = this.split_args(args)
-
-    if 0 == number_args.length
+    if 0 == args.length
       number = '1'
-    else if 1 == number_args.length
-      number = number_args.shift()
-    else if 2 == number_args.length
-      number = number_args.shift()
-      time = number_args.shift()
-    else
-      throw "bad number of number-like args" ##@@ better errors here
+      time = now
 
-    if 1 == word_args.length
-      candidate_time = switch word = word_args.shift()
-                         when 'now'  ## support more
-                           now
-                         else
-                           throw "unknown arg: #{word}"
-      if candidate_time?
-        if time?
-          throw "time found too many times"
-        else
-          time = candidate_time
-    else if word_args.length > 1
-      throw "bad number of word-like args" ##@@ better errors here
-
-
-    if 1 == time_args.length
-      if  time?
-        throw "time found too many times"
+    else if 1 == args.length
+      sarg = '' + args[0]
+      if this.is_numeric(sarg)
+        number = sarg
+        time = now
+      else if this.is_jsonic(sarg)
+        number = '1'
+        time = now
+        properties = sarg
       else
-        time = time_args.shift()
-    else if time_args.length > 1
-      throw "bad number of time-like args" ##@@ better errors here
+        number = '1'
+        time = sarg
 
-    if 1 == json_args.length
-      properties = json_args.shift()
-    else if json_args.length > 1
-      throw "bad number of json-like args" ##@@ better errors here
-
-
-    if !time?
-      time = now ## @@serialise date
+    else if 2 == args.length
+      sarg0 = '' + args[0]
+      sarg1 = '' + args[1]
+      if this.is_numeric(sarg0)
+        number = sarg0
+        if this.is_jsonic(sarg1)
+          time = now
+          properties = sarg1
+        else
+          time = sarg1
+      else if this.is_jsonic(sarg1)
+        number = '1'
+        time = sarg0
+        properties = sarg1
+      else
+        throw "unclear args" ##@@ better
+    else if 3 == args.length
+      number = '' + args[0]
+      time = '' + args[1]
+      properties = '' + args[2]
+    else
+      throw "too many args"
 
     parsed_args = [['time', time], ['number', number]]
 
@@ -107,32 +105,14 @@ class Connection
       catch e
         throw "bad json arg: #{properties} : #{e}"
 
-    if number_args.length + word_args.length + time_args.length + json_args.length > 0
-      throw "unknown args"
-
     console.log parsed_args
-
     parsed_args
 
-  split_args: (args) ->
-    number_args = []
-    word_args = []
-    time_args = []
-    json_args = []
-    for arg in args
-      sarg = '' + arg
-      if sarg.match(/^-?\d+(?:\.\d+)?$/)
-        number_args.push sarg
-      else if sarg.match(/^[0-9a-z_\- ]+$/i)
-        word_args.push sarg
-      else if sarg.match(/^[0-9\-+: ]+$/) ##@@ support more formats here
-        time_args.push sarg
-      else if '{' == sarg[0]
-        json_args.push sarg
-      else
-        throw "bad arg: #{sarg}" ##@@ better errors here
-    [number_args, word_args, time_args, json_args]
+  is_numeric: (arg) ->
+    arg.match(/^-?\d+(?:\.\d+)?$/)
 
+  is_jsonic: (arg) ->
+    '{' == arg[0]
 
   query: (query, keep_alive, callback) ->
     console.log query
