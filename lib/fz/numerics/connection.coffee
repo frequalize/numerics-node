@@ -62,60 +62,59 @@ class Connection
       time = now
 
     else if 1 == args.length
-      sarg = '' + args[0]
-      if this.is_numeric(sarg)
-        number = sarg
+      if this.is_numeric(args[0])
+        number = '' + args[0]
         time = now
-      else if this.is_jsonic(sarg)
+      else if this.is_jsonic(args[0])
         number = '1'
         time = now
-        properties = sarg
+        properties = args[0]
       else
         number = '1'
-        time = sarg
+        time = args[0]
 
     else if 2 == args.length
-      sarg0 = '' + args[0]
-      sarg1 = '' + args[1]
-      if this.is_numeric(sarg0)
-        number = sarg0
-        if this.is_jsonic(sarg1)
+      if this.is_numeric(args[0])
+        number = '' + args[0]
+        if this.is_jsonic(args[1])
           time = now
-          properties = sarg1
+          properties = args[1]
         else
-          time = sarg1
-      else if this.is_jsonic(sarg1)
+          time = args[1]
+      else if this.is_jsonic(args[1])
         number = '1'
-        time = sarg0
-        properties = sarg1
+        time = args[0]
+        properties = args[1]
       else
         throw "unclear args" ##@@ better
     else if 3 == args.length
       number = '' + args[0]
       time = '' + args[1]
-      properties = '' + args[2]
+      properties = args[2]
     else
       throw "too many args"
 
     parsed_args = [['time', time], ['number', number]]
 
     if properties?
-      try
-        parsed_args.push(['json', JSON.parse(properties)])
-      catch e
-        throw "bad json arg: #{properties} : #{e}"
+      if 'object' == typeof properties
+        parsed_args.push(['json', properties])
+      else
+        try
+          parsed_args.push(['json', JSON.parse(properties)])
+        catch e
+          throw "bad json arg: #{properties} : #{e}"
 
-    console.log parsed_args
     parsed_args
 
   is_numeric: (arg) ->
-    arg.match(/^-?\d+(?:\.\d+)?$/)
+    ('number' == typeof arg) || ('' + arg).match(/^-?\d+(?:\.\d+)?$/)
 
   is_jsonic: (arg) ->
-    '{' == arg[0]
+    ('object' == typeof arg) || ('{' == arg[0])
 
   query: (query, keep_alive, callback) ->
-    console.log query
+    console.log query ##@@ if verbose??
     request = http.request Connection.QUERY_OPTIONS, (response) =>
       err = null
       data = null

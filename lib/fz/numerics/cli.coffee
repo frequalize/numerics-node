@@ -14,7 +14,7 @@ class CLI
     @log_level = null
 
     for arg in process.argv
-      if md = arg.match(/^-([a-z]+)$/i)
+      if md = arg.match(/^-([a-z]*)$/i)
         @options.push md[1]
       else
         @args.push arg
@@ -32,15 +32,15 @@ class CLI
 
     @cmd = @args.shift()
 
-    if @cmd.match(/\//)
+    if @cmd? && @cmd.match(/\//)
       @timeseries = ['derivation', @timeseries, @cmd] # cmd is really a derivation spec
       @cmd = @args.shift()
 
     switch @cmd
       when 'insert'
-        this.command()
+        this.read_command()
       when 'remove'
-        this.command()
+        this.read_command()
       when 'slice'
         this.command()
       when 'range'
@@ -79,13 +79,54 @@ class CLI
         @log_level = 'debug'
       when 'V'
         this.version()
+      when ''
+        @read_mode = true
+      when'j'
+        @json_mode = true
+
+  error: (err) ->
+    process.stderr.write(err)
+    process.stderr.write("\n")
+
+  success: (data) ->
+    if @json_mode
+      process.stdout.write(JSON.stringify(data))
+      process.stdout.write("\n")
+    else
+      console.log(data)
 
   command: () ->
     this.connection()[@cmd] @timeseries, @args..., (err, data) =>
       if err
-        console.log 'error: ' + err
+        this.error(err)
       else
-        console.log data
+        this.success(data)
+
+  read_command: () ->
+    if @read_mode
+      process.stdin.resume()
+      process.stdin.setEncoding('utf8')
+      buffer = ''
+      process.stdin.on 'data', (chunk) =>
+        buffer += chunk
+      process.stdin.on 'end', () =>
+        try
+          this.json_command(JSON.parse(buffer))
+        catch e
+          throw this.error(e)
+
+    else
+      this.command()
+
+  json_command: (data) ->
+    if Array.isArray(data)
+      if Array.isArray(data[0])
+        this.json_command(d) for d in data
+      else
+        @args = [data[1], data[0], data[2]] ## careful - time and number are the other way around in the output than in the args to connection.insert|remove
+        this.command()
+    else
+      throw "can't deal with json input that looks like that"
 
   logger: () ->
     @lgr ||= if @log_level
