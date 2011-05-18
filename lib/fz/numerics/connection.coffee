@@ -32,7 +32,7 @@ class Connection
     this.query(['stats', timeseries, args...], false, callback)
 
   distribution: (timeseries, args..., callback) ->
-    this.query(['distribution', timeseries, args...], false, callback) ##@@ args
+    this.query(['distribution', timeseries, this.number_args(args)...], false, callback) ##@@ other args
 
   properties: (timeseries, callback) ->
     this.query(['properties', timeseries], false, callback)
@@ -44,7 +44,7 @@ class Connection
     this.query(['draw', timeseries, args...], false, callback)
 
   histogram: (timeseries, args..., callback) ->
-    this.query(['histogram', timeseries, args...], false, callback)
+    this.query(['histogram', timeseries, this.number_args(args)...], false, callback)
 
   ## Args ##
 
@@ -52,7 +52,7 @@ class Connection
     ['time', '' + arg] for arg in args
 
   number_args: (args) ->
-    ['number', '' + arg] for arg in number_args
+    ['number', '' + arg] for arg in args
 
   write_args: (args) ->
     now = new Date().toString()

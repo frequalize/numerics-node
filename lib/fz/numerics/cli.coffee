@@ -153,9 +153,9 @@ class CLI
                          version                                     show the current version of the timeseries (<num of inserts>.<num of removals>)
                          slice [<start_time>] [<end_time>]           show times, number, properties values
                          range [<start_index>] [<end_index>]         show times, number, properties values
-                         distribution [<bin_width> [<start_time>] [<end_time>]    show distribution of values in the timeseries
+                         distribution [<bin_width>] [<start_time>] [<end_time>]    show distribution of values in the timeseries
                          draw  [<start_time>] [<end_time>]           draw an ascii timeseries (on derived timeseries only)
-                         histogram  [<start_time>] [<end_time>]      draw an ascii histogram of the distribution
+                         histogram  [<bin_width>] [<start_time>] [<end_time>]      draw an ascii histogram of the distribution
 
                        Args:
                         <aggregate>/<timespan>                       derive a normalized timeseries = one entry for every <timespan> of the original series, with multiple entries being aggregayed according to <aggregate>
