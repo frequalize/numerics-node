@@ -13,9 +13,17 @@ class CLI
     @args = []
     @log_level = null
 
+    @cmd_opts = {}
+    collect_cmd_opt = null
+
     for arg in process.argv
-      if md = arg.match(/^-([a-z]*)$/i)
+      if collect_cmd_opt
+        @cmd_opts[collect_cmd_opt] = arg
+        collect_cmd_opt = null
+      else if md = arg.match(/^-([a-z]*)$/i)
         @options.push md[1]
+      else if md = arg.match(/^--([a-z]+)$/i)
+        collect_cmd_opt = md[1]
       else
         @args.push arg
 
@@ -45,8 +53,6 @@ class CLI
         this.command()
       when 'range'
         this.command()
-      when 'view'
-        this.command()
       when 'stats'
         this.command()
       when 'distribution'
@@ -56,7 +62,7 @@ class CLI
       when 'version'
         this.command()
       when 'draw'
-        this.command()
+        this.opts_command()
       when 'histogram'
         this.command()
       when 'watch'
@@ -102,6 +108,10 @@ class CLI
       else
         this.success(data)
 
+  opts_command: () ->
+    @args = [@cmd_opts]
+    this.command()
+
   read_command: () ->
     if @read_mode
       process.stdin.resume()
@@ -142,7 +152,7 @@ class CLI
     process.exit()
 
   help: (status) ->
-    sys.puts '''$ numerics [-h -v[v] ] <timeseries> [<aggregate>/<timespan>] [ <command> [<arg1> ...] ]
+    sys.puts '''$ numerics [-h -v[v] -j ] <timeseries> [<aggregate>/<timespan>] <command> [<arg1> ...] [<command options>]
 
                        Commands:
                          list                                        list your timeseries
@@ -153,16 +163,24 @@ class CLI
                          version                                     show the current version of the timeseries (<num of inserts>.<num of removals>)
                          slice [<start_time>] [<end_time>]           show times, number, properties values
                          range [<start_index>] [<end_index>]         show times, number, properties values
-                         distribution [<bin_width>] [<start_time>] [<end_time>]    show distribution of values in the timeseries
-                         draw  [<start_time>] [<end_time>]           draw an ascii timeseries (on derived timeseries only)
-                         histogram  [<bin_width>] [<start_time>] [<end_time>]      draw an ascii histogram of the distribution
+                         distribution [<bin_width>]                  show distribution of values in the timeseries
+                         draw  [time or index options]               draw an ascii timeseries (on derived timeseries only)
+                         histogram  [<bin_width>] [index options]    draw an ascii histogram of the distribution
 
                        Args:
                         <aggregate>/<timespan>                       derive a normalized timeseries = one entry for every <timespan> of the original series, with multiple entries being aggregayed according to <aggregate>
                           <aggregate> values:  mean, total, @@etc or mean+, total+, etc = the + suffix indicates a cumulative aggregation
                           <timespace> values:  day, minute, second, month, year @@@etc
 
-                       Options:
+                       Command options:
+                         --from   start time
+                         --to     end time
+                         --start  start index
+                         --end    end index
+                         --limit  limit - only valid if one of the start or end or both options are ommited
+
+                       General options:
+                         -h                                      JSON output
                          -h                                      display this and exit
                          -v(v)                                   (extra) verbose logging
                          -V                                      print version and exit
