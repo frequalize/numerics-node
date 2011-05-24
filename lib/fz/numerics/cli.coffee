@@ -165,7 +165,7 @@ class CLI
                          range [<start_index>] [<end_index>]         show times, number, properties values
                          distribution [<bin_width>]                  show distribution of values in the timeseries
                          draw  [time or index options]               draw an ascii timeseries (on derived timeseries only)
-                         histogram  [<bin_width>] [index options]    draw an ascii histogram of the distribution
+                         histogram  [<bin_width>] [value options @@todo]    draw an ascii histogram of the distribution
 
                        Args:
                         <aggregate>/<timespan>                       derive a normalized timeseries = one entry for every <timespan> of the original series, with multiple entries being aggregayed according to <aggregate>
@@ -173,8 +173,8 @@ class CLI
                           <timespace> values:  day, minute, second, month, year @@@etc
 
                        Command options:
-                         --from   start time
-                         --to     end time
+                         --from   start time (when applies to a timeseries) or start value (when applied to a distribution)
+                         --to     end time (when applies to a timeseries) or end value (when applied to a distribution)
                          --start  start index
                          --end    end index
                          --limit  limit - only valid if one of the start or end or both options are ommited
