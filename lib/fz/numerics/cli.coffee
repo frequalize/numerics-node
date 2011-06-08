@@ -49,10 +49,8 @@ class CLI
         this.read_command()
       when 'remove'
         this.read_command()
-      when 'slice'
-        this.command()
-      when 'range'
-        this.command()
+      when 'entries'
+        this.opts_command()
       when 'stats'
         this.command()
       when 'distribution'
@@ -161,23 +159,32 @@ class CLI
                          stats                                       show accumulated stats for timeseries
                          properties                                  list the properties used in a timeseries
                          version                                     show the current version of the timeseries (<num of inserts>.<num of removals>)
-                         slice [<start_time>] [<end_time>]           show times, number, properties values
-                         range [<start_index>] [<end_index>]         show times, number, properties values
-                         distribution [<bin_width>]                  show distribution of values in the timeseries
-                         draw  [time or index options]               draw an ascii timeseries (on derived timeseries only)
+                         entries [time or index options]             show time, number, properties values for the raw timeseries
+                         distribution [<bin_width>] [value options @@todo]  show distribution of values in the timeseries
+                         draw  [time or index options]               draw an ascii timeseries (on derived timeseries only - will use the default derivation if no derivation specified)
                          histogram  [<bin_width>] [value options @@todo]    draw an ascii histogram of the distribution
 
                        Args:
                         <aggregate>/<timespan>                       derive a normalized timeseries = one entry for every <timespan> of the original series, with multiple entries being aggregayed according to <aggregate>
                           <aggregate> values:  mean, total, @@etc or mean+, total+, etc = the + suffix indicates a cumulative aggregation
-                          <timespace> values:  day, minute, second, month, year @@@etc
+                          <timespan> values:  day, minute, second, month, year @@@etc or 7day, 40minute etc
 
                        Command options:
-                         --from   start time (when applies to a timeseries) or start value (when applied to a distribution)
-                         --to     end time (when applies to a timeseries) or end value (when applied to a distribution)
-                         --start  start index
-                         --end    end index
-                         --limit  limit - only valid if one of the start or end or both options are ommited
+                        time/index options:
+                         --from   start time
+                         --to     end time @@inclusive @@???
+                         --start  start index (can be negative to count from end)
+                         --end    end index @@inclusive @@??? (can be negative to count from end)
+                         --limit  max mumber of entries to return
+                        examples:
+                          --limit 10 => the last 10 entries
+                          --from "2011-01-01" --to "2011-02-01" => all entries in Jan 2011 @@inclusive? fix
+                          --to yesterday --limit 10 => the last 10 entries before yesterday @@ todo
+                          --start 0 --end 100 => the first @@@101 (fix inclusive??) entries
+                          --start -10 => the last 10@@check entries
+
+                        value options:
+                         @@todo
 
                        General options:
                          -h                                      JSON output

@@ -22,11 +22,8 @@ class Connection
   remove: (timeseries, args..., callback) ->
     this.query(['remove', timeseries, this.write_args(args)...], false, callback) ##@@ support keepalive
 
-  slice: (timeseries, args..., callback) ->
-    this.query(['slice', timeseries, this.time_args(args)...], false, callback)
-
-  range: (timeseries, args..., callback) ->
-    this.query(['range', timeseries, this.number_args(args)...], false, callback)
+  entries: (timeseries, args..., callback) ->
+    this.query(['entries', timeseries, args...], false, callback)
 
   stats: (timeseries, args..., callback) ->
     this.query(['stats', timeseries, args...], false, callback)
