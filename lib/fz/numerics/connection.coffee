@@ -16,6 +16,15 @@ class Connection
 
   ## Commands ##
 
+  about: (timeseries, callback) ->
+    this.query(['about', timeseries], false, callback)
+
+  create: (timeseries, args..., callback) ->
+    this.query(['create', timeseries, this.number_args(args)...], false, callback)
+
+  erase: (timeseries, callback) ->
+    this.query(['erase', timeseries], false, callback)
+
   insert: (timeseries, args..., callback) ->
     this.query(['insert', timeseries, this.write_args(args)...], false, callback) ##@@ support keepalive
 
@@ -133,7 +142,7 @@ class Connection
       request.setHeader('Connection', 'Keep-Alive')
     else
       request.setHeader('Connection', 'Close')
-    request.write(JSON.stringify(query))
+    request.write(JSON.stringify(['ns', 'test', query])) ## @@ remove ns
     request.end()
 
 

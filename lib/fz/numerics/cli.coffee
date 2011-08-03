@@ -45,6 +45,12 @@ class CLI
       @cmd = @args.shift()
 
     switch @cmd
+      when 'about'
+        this.command()
+      when 'create'
+        this.command()
+      when 'erase'
+        this.command()
       when 'insert'
         this.read_command()
       when 'remove'
@@ -156,6 +162,9 @@ class CLI
                          list                                        list your timeseries
                          insert [<number>] [<time>] [<properties>]   insert a value into the timeseries -- args can be ommited, a missing number means 1, a missing times means now
                          remove [<number>] [<time>] [<properties>]   remove -- args can only be ommited if the default would match what needs to be removed
+                         about                                       show metadata for a timeseries
+                         create [<number>]                           create a new empty timeseries - only really necessary if you want to specify a specific precision with <number>, otherwise they are auto-created on insert
+                         erase                                       remove all data from a timeseries and erase its metadata
                          stats                                       show accumulated stats for timeseries
                          properties                                  list the properties used in a timeseries
                          version                                     show the current version of the timeseries (<num of inserts>.<num of removals>)
