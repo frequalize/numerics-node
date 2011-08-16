@@ -16,6 +16,9 @@ class Connection
 
   ## Commands ##
 
+  list: (timeseries, callback) ->
+    this.query(['list'], false, callback)
+
   about: (timeseries, callback) ->
     this.query(['about', timeseries], false, callback)
 

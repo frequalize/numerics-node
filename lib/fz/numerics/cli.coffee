@@ -35,16 +35,19 @@ class CLI
 
     @timeseries = @args.shift()
 
-    if !@timeseries?
-      this.help(1)
-
     @cmd = @args.shift()
+
+    if 'list' == @timeseries && !@cmd?
+      @timeseries = null
+      @cmd = 'list'
 
     if @cmd? && @cmd.match(/\//)
       @timeseries = ['derivation', @timeseries, @cmd] # cmd is really a derivation spec
       @cmd = @args.shift()
 
     switch @cmd
+      when 'list'
+        this.command()
       when 'about'
         this.command()
       when 'create'
@@ -156,10 +159,10 @@ class CLI
     process.exit()
 
   help: (status) ->
-    sys.puts '''$ numerics [-h -v[v] -j ] <timeseries> [<aggregate>/<timespan>] <command> [<arg1> ...] [<command options>]
+    sys.puts '''$ numerics [-h -v[v] -j ] [<timeseries>] [<aggregate>/<timespan>] <command> [<arg1> ...] [<command options>]
 
                        Commands:
-                         list                                        list your timeseries
+                         list                                        list your timeseries (no <timeseries> arg in this case)
                          insert [<number>] [<time>] [<properties>]   insert a value into the timeseries -- args can be ommited, a missing number means 1, a missing times means now
                          remove [<number>] [<time>] [<properties>]   remove -- args can only be ommited if the default would match what needs to be removed
                          about                                       show metadata for a timeseries
