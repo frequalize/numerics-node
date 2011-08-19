@@ -42,8 +42,11 @@ class CLI
       @cmd = 'list'
 
     if @cmd? && @cmd.match(/\//)
-      @timeseries = ['derivation', @timeseries, @cmd] # cmd is really a derivation spec
+      @timeseries = [@timeseries, @cmd] # cmd is really a derivation spec
       @cmd = @args.shift()
+
+    if @timeseries? && !@cmd?
+      @cmd = 'headline' ## default
 
     switch @cmd
       when 'list'
@@ -72,12 +75,12 @@ class CLI
         this.opts_command()
       when 'histogram'
         this.command()
+      when 'headline'
+        this.opts_command()
       when 'watch'
         this.watch_command()
-      when null
-        this.help(1) ##@@ pick a default
       else
-        this.help(1)
+        this.help(1, true)
 
   process_options: () ->
     this.process_option(opt) for opt in @options
@@ -158,9 +161,10 @@ class CLI
     sys.puts "#{@script} v#{CLI.VERSION}"
     process.exit()
 
-  help: (status) ->
-    sys.puts '''$ numerics [-h -v[v] -j ] [<timeseries>] [<aggregate>/<timespan>] <command> [<arg1> ...] [<command options>]
-
+  help: (status, short) ->
+    console.log '$ numerics [-h -v[v] -j ] [<timeseries>] [<metric>[<suffix>]/<timespan>] <command> [<arg1> ...] [<command options>]'
+    unless short
+      console.log '''
                        Commands:
                          list                                        list your timeseries (no <timeseries> arg in this case)
                          insert [<number>] [<time>] [<properties>]   insert a value into the timeseries -- args can be ommited, a missing number means 1, a missing times means now
@@ -175,10 +179,11 @@ class CLI
                          distribution [<bin_width>] [value options @@todo]  show distribution of values in the timeseries
                          draw  [time or index options]               draw an ascii timeseries (on derived timeseries only - will use the default derivation if no derivation specified)
                          histogram  [<bin_width>] [value options @@todo]    draw an ascii histogram of the distribution
+                         headline [--t[imespan] <timespan>] [--m[etric] <metric]  give the headline value for a timeseries = the value of <metric> over the last <timespan> (uses metric and timespan from default derivation if none given)
 
-                       Args:
-                        <aggregate>/<timespan>                       derive a normalized timeseries = one entry for every <timespan> of the original series, with multiple entries being aggregayed according to <aggregate>
-                          <aggregate> values:  mean, total, @@etc or mean+, total+, etc = the + suffix indicates a cumulative aggregation
+                         <metric>[<suffix>]/<timespan>               derive a normalized timeseries = one entry for every <timespan> of the original series, with multiple entries being aggregated according to <metric>
+                          <metric> values:  mean, total, count, median, etc@@
+                          <suffix> values: +, - or % => + indicates a cumulative aggregation, - a step-wise difference, % the percentage drift from stating datum
                           <timespan> values:  day, minute, second, month, year @@@etc or 7day, 40minute etc
 
                        Command options:
@@ -195,7 +200,7 @@ class CLI
                           --start 0 --end 100 => the first @@@101 (fix inclusive??) entries
                           --start -10 => the last 10@@check entries
 
-                        value options:
+                        Value options:
                          @@todo
 
                        General options:
@@ -204,10 +209,10 @@ class CLI
                          -v(v)                                   (extra) verbose logging
                          -V                                      print version and exit
 
-
-             '''
-    status = 1 unless stats?
-    process.exit status
+               '''
+    process.stdout.flush =>
+      status = 1 unless stats?
+      process.exit status
 
 
 exports.CLI = CLI

@@ -1,67 +1,67 @@
-http = require 'http'
+HTTP = require 'http'
+QS   = require('querystring')
 
 # Fz.Numerics.Connection
 class Connection
 
   @HOST : '127.0.0.1'
-  @PORT : 3006
-  @QUERY_OPTIONS : {
-    host: @HOST
-    port: @PORT
-    method: 'POST'
-    path: '/query'
-  }
+  @PORT : 9000
+  @BASE_PATH: '/ts'
 
   constructor : () ->
 
   ## Commands ##
 
-  list: (timeseries, callback) ->
-    this.query(['list'], false, callback)
+  list: (_..., callback) ->
+    this.coll_get(callback)
+
+  create: (args..., callback) ->
+    this.coll_post(args, callback)
 
   about: (timeseries, callback) ->
-    this.query(['about', timeseries], false, callback)
-
-  create: (timeseries, args..., callback) ->
-    this.query(['create', timeseries, this.number_args(args)...], false, callback)
+    this.get(timeseries, 'about', callback)
 
   erase: (timeseries, callback) ->
-    this.query(['erase', timeseries], false, callback)
+    this.destroy(timeseries, callback)
 
   insert: (timeseries, args..., callback) ->
-    this.query(['insert', timeseries, this.write_args(args)...], false, callback) ##@@ support keepalive
+    this.post(timeseries, 'insert', this.write_args(args), callback)
 
   remove: (timeseries, args..., callback) ->
-    this.query(['remove', timeseries, this.write_args(args)...], false, callback) ##@@ support keepalive
+    this.post(timeseries, 'remove', this.write_args(args), callback)
 
-  entries: (timeseries, args..., callback) ->
-    this.query(['entries', timeseries, args...], false, callback)
+  entries: (timeseries, query, callback) ->
+    this.get(timeseries, 'entries', query, callback)
 
   stats: (timeseries, args..., callback) ->
-    this.query(['stats', timeseries, args...], false, callback)
+    this.get(timeseries, 'stats', args..., callback)
 
   distribution: (timeseries, args..., callback) ->
-    this.query(['distribution', timeseries, this.number_args(args)...], false, callback) ##@@ other args
+    query = {}
+    if args.length > 0
+      query['w'] = args[0] ##@@ todo, support boundary query here too
+    this.get(timeseries, 'distribution', query, callback)
 
   properties: (timeseries, callback) ->
-    this.query(['properties', timeseries], false, callback)
+    this.get(timeseries, 'properties', callback)
 
   version: (timeseries, callback) ->
-    this.query(['version', timeseries], false, callback)
+    this.get(timeseries, 'version', callback)
 
-  draw: (timeseries, args..., callback) ->
-    this.query(['draw', timeseries, args...], false, callback)
+  draw: (timeseries, query, callback) ->
+    this.get(timeseries, 'draw', query, callback)
 
   histogram: (timeseries, args..., callback) ->
-    this.query(['histogram', timeseries, this.number_args(args)...], false, callback)
+    query = {}
+    if args.length > 0
+      query['w'] = args[0] ##@@ todo, support boundary query here too
+    this.get(timeseries, 'histogram', query, callback)
 
-  ## Args ##
+  headline: (timeseries, query, callback) ->
+    this.get(timeseries, 'headline', query, callback)
 
-  time_args: (args) ->
-    ['time', '' + arg] for arg in args
 
-  number_args: (args) ->
-    ['number', '' + arg] for arg in args
+  ## Args Checkers ##
 
   write_args: (args) ->
     now = new Date().toString()
@@ -103,18 +103,18 @@ class Connection
     else
       throw "too many args"
 
-    parsed_args = [['time', time], ['number', number]]
+    ordered_args = [time, number]
 
     if properties?
       if 'object' == typeof properties
-        parsed_args.push(['json', properties])
+        ordered_args.push(properties)
       else
         try
-          parsed_args.push(['json', JSON.parse(properties)])
+          ordered_args.push(JSON.parse(properties))
         catch e
           throw "bad json arg: #{properties} : #{e}"
 
-    parsed_args
+    ordered_args
 
   is_numeric: (arg) ->
     ('number' == typeof arg) || ('' + arg).match(/^-?\d+(?:\.\d+)?$/)
@@ -122,9 +122,37 @@ class Connection
   is_jsonic: (arg) ->
     ('object' == typeof arg) || ('{' == arg[0])
 
-  query: (query, keep_alive, callback) ->
-    console.log query ##@@ if verbose??
-    request = http.request Connection.QUERY_OPTIONS, (response) =>
+  ## end of Arg helpers ##
+
+  coll_get: (callback) ->
+    this.send('GET', Connection.BASE_PATH, null, callback)
+
+  coll_post: (args, callback) ->
+    this.send('POST', Connection.BASE_PATH, JSON.stringify(args), callback)
+
+  get: (timeseries, command, rest...) ->
+    if rest.length == 1
+      callback = rest[0]
+    else
+      query = rest[0]
+      callback = rest[1]
+    path = [Connection.BASE_PATH, (if Array.isArray(timeseries) then timeseries.join('/') else timeseries), command].join('/')
+    if query?
+      path += '?' +QS.stringify(query)
+
+    this.send('GET', path, null, callback)
+
+  post: (timeseries, command, args, callback) ->
+    this.send('POST', [Connection.BASE_PATH, (if Array.isArray(timeseries) then timeseries.join('/') else timeseries), command].join('/'), JSON.stringify(args), callback)
+
+  destroy: (timeseries, callback) ->
+    this.send('DELETE', [Connection.BASE_PATH, (if Array.isArray(timeseries) then timeseries.join('/') else timeseries)].join('/'), null, callback)
+
+  send: (method, path, body, callback) ->
+    ##@@ if verbose?
+    console.log "#{method} #{path}"
+
+    request = HTTP.request {host: Connection.HOST, port: Connection.PORT, method: method, path: path}, (response) =>
       err = null
       data = null
       done = -> callback(err, data) if callback
@@ -139,13 +167,16 @@ class Connection
           err = 'invalid server response'
         done()
 
-    request.setHeader('Transfer-Encoding', 'normal')
-    request.setHeader('Content-Type', 'application/json')
-    if keep_alive
+    if false ##@@ todo - support keep_alive
       request.setHeader('Connection', 'Keep-Alive')
     else
       request.setHeader('Connection', 'Close')
-    request.write(JSON.stringify(['ns', 'test', query])) ## @@ remove ns
+    if body?
+      request.setHeader('Transfer-Encoding', 'normal')
+      request.setHeader('Content-Type', 'application/json')
+      request.setHeader('Content-Length', body.length)
+      request.write(body)
+
     request.end()
 
 
