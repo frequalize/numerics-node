@@ -60,6 +60,9 @@ class Connection
   headline: (timeseries, query, callback) ->
     this.get(timeseries, 'headline', query, callback)
 
+  trend: (timeseries, query, callback) ->
+    this.get(timeseries, 'trend', query, callback)
+
 
   ## Args Checkers ##
 

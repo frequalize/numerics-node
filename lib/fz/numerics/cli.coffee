@@ -77,6 +77,8 @@ class CLI
         this.command()
       when 'headline'
         this.opts_command()
+      when 'trend'
+        this.opts_command()
       when 'watch'
         this.watch_command()
       else
@@ -180,6 +182,7 @@ class CLI
                          draw  [time or index options]               draw an ascii timeseries (on derived timeseries only - will use the default derivation if no derivation specified)
                          histogram  [<bin_width>] [value options @@todo]    draw an ascii histogram of the distribution
                          headline [--t[imespan] <timespan>] [--m[etric] <metric]  give the headline value for a timeseries = the value of <metric> over the last <timespan> (uses metric and timespan from default derivation if none given)
+                         trend  [time or index options]              calculate a linear regression trend over the specified period (on derived timeseries only - will use the default derivation if no derivation specified)
 
                          <metric>[<suffix>]/<timespan>               derive a normalized timeseries = one entry for every <timespan> of the original series, with multiple entries being aggregated according to <metric>
                           <metric> values:  mean, total, count, median, etc@@
