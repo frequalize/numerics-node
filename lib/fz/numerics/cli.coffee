@@ -63,6 +63,8 @@ class CLI
         this.read_command()
       when 'entries'
         this.opts_command()
+      when 'series'
+        this.opts_command()
       when 'stats'
         this.command()
       when 'distribution'
@@ -178,6 +180,7 @@ class CLI
                          properties                                  list the properties used in a timeseries
                          version                                     show the current version of the timeseries (<num of inserts>.<num of removals>)
                          entries [time or index options]             show time, number, properties values for the raw timeseries
+                         series [time or index options]              separate time and number series for the raw timeseries
                          distribution [<bin_width>] [value options @@todo]  show distribution of values in the timeseries
                          draw  [time or index options]               draw an ascii timeseries (on derived timeseries only - will use the default derivation if no derivation specified)
                          histogram  [<bin_width>] [value options @@todo]    draw an ascii histogram of the distribution

@@ -33,6 +33,9 @@ class Connection
   entries: (timeseries, query, callback) ->
     this.get(timeseries, 'entries', query, callback)
 
+  series: (timeseries, query, callback) ->
+    this.get(timeseries, 'series', query, callback)
+
   stats: (timeseries, args..., callback) ->
     this.get(timeseries, 'stats', args..., callback)
 
