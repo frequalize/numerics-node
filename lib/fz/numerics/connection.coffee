@@ -144,7 +144,7 @@ class Connection
       callback = rest[1]
     path = [Connection.BASE_PATH, (if Array.isArray(timeseries) then timeseries.join('/') else timeseries), command].join('/')
     if query?
-      path += '?' +QS.stringify(query)
+      path += '?' + QS.stringify(query)
 
     this.send('GET', path, null, callback)
 
@@ -173,6 +173,7 @@ class Connection
           err = 'invalid server response'
         done()
 
+    request.setHeader('X-Access-Key', 'master_test') ##@@ TODO
     if false ##@@ todo - support keep_alive
       request.setHeader('Connection', 'Keep-Alive')
     else

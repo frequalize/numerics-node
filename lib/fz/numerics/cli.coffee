@@ -105,7 +105,7 @@ class CLI
         @json_mode = true
 
   error: (err) ->
-    process.stderr.write(err)
+    process.stderr.write('Error: ' + err)
     process.stderr.write("\n")
 
   success: (data) ->
