@@ -1,12 +1,15 @@
 HTTP = require 'http'
 QS   = require('querystring')
 
+SIO = require('socket.io-client')
+
 # Fz.Numerics.Connection
 class Connection
 
   @HOST : '127.0.0.1'
   @PORT : 9000
   @BASE_PATH: '/ts'
+  @EVENT_RESOURCE: 'event'
 
   constructor : () ->
 
@@ -65,7 +68,6 @@ class Connection
 
   trend: (timeseries, query, callback) ->
     this.get(timeseries, 'trend', query, callback)
-
 
   ## Args Checkers ##
 
@@ -185,6 +187,36 @@ class Connection
       request.write(body)
 
     request.end()
+
+
+  subscribe: (timeseries, events..., callback) ->
+    @subscriptions ||= {}
+    @subscriptions[timeseries] ||= {}
+    for event in events
+      @subscriptions[timeseries][event] ||= []
+      @subscriptions[timeseries][event].push(callback)
+
+    this.with_ws_client (ws) =>
+      ws.emit('message', ['subscribe', timeseries, events])
+
+  with_ws_client: (callback) ->
+    if @ws
+      callback(@ws)
+    else
+      this.setup_ws_client(SIO.connect("ws:#{Connection.HOST}:#{Connection.PORT}", {resource: Connection.EVENT_RESOURCE, transports: ['websocket']}), callback)
+
+  setup_ws_client: (ws, callback) ->
+    ws.on 'connect', () =>
+      @ws = ws
+      callback(ws)
+    ws.on 'disconnect', () =>
+      @ws = null
+    ws.on 'message', (msg) =>
+      [ts, event, data] = msg
+      if ts && event && @subscriptions[ts] && @subscriptions[ts][event]
+        cb(data) for cb in @subscriptions[ts][event]
+      else
+        console.error 'invalid server response'
 
 
 exports.Connection = Connection

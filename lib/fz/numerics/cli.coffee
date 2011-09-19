@@ -152,6 +152,10 @@ class CLI
     else
       throw "can't deal with json input that looks like that"
 
+  watch_command: () ->
+    this.connection().subscribe @timeseries, @args..., (data) =>
+      this.success(data)
+
   logger: () ->
     @lgr ||= if @log_level
                null
@@ -186,6 +190,7 @@ class CLI
                          histogram  [<bin_width>] [value options @@todo]    draw an ascii histogram of the distribution
                          headline [--t[imespan] <timespan>] [--m[etric] <metric]  give the headline value for a timeseries = the value of <metric> over the last <timespan> (uses metric and timespan from default derivation if none given)
                          trend  [time or index options]              calculate a linear regression trend over the specified period (on derived timeseries only - will use the default derivation if no derivation specified)
+                         watch <event>                               watch for <event> changes
 
                          <metric>[<suffix>]/<timespan>               derive a normalized timeseries = one entry for every <timespan> of the original series, with multiple entries being aggregated according to <metric>
                           <metric> values:  mean, total, count, median, etc@@
@@ -208,6 +213,9 @@ class CLI
 
                         Value options:
                          @@todo
+
+                       Events:
+                        stats   emits the version data and stats whenever the stats change
 
                        General options:
                          -h                                      JSON output
