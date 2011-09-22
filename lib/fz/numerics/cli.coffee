@@ -145,7 +145,13 @@ class CLI
   json_command: (data) ->
     if Array.isArray(data)
       if Array.isArray(data[0])
-        this.json_command(d) for d in data
+        i = 0
+        run_next = () =>
+          this.json_command(data[i])
+          i++
+          if i < data.length
+            setTimeout(run_next, 500)
+        run_next()
       else
         @args = [data[1], data[0], data[2]] ## careful - time and number are the other way around in the output than in the args to connection.insert|remove
         this.command()
@@ -153,8 +159,8 @@ class CLI
       throw "can't deal with json input that looks like that"
 
   watch_command: () ->
-    this.connection().subscribe @timeseries, @args..., (data) =>
-      this.success(data)
+    this.connection().subscribe @timeseries, @args..., (version, stats) =>
+      this.success([version, stats])
 
   logger: () ->
     @lgr ||= if @log_level

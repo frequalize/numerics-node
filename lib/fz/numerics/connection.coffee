@@ -212,9 +212,9 @@ class Connection
     ws.on 'disconnect', () =>
       @ws = null
     ws.on 'message', (msg) =>
-      [ts, event, data] = msg
+      [ts, event, data...] = msg
       if ts && event && @subscriptions[ts] && @subscriptions[ts][event]
-        cb(data) for cb in @subscriptions[ts][event]
+        cb(data...) for cb in @subscriptions[ts][event]
       else
         console.error 'invalid server response'
 
