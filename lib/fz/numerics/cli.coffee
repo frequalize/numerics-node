@@ -194,7 +194,7 @@ class CLI
                          distribution [<bin_width>] [value options @@todo]  show distribution of values in the timeseries
                          draw  [time or index options]               draw an ascii timeseries (on derived timeseries only - will use the default derivation if no derivation specified)
                          histogram  [<bin_width>] [value options @@todo]    draw an ascii histogram of the distribution
-                         headline [--t[imespan] <timespan>] [--m[etric] <metric]  give the headline value for a timeseries = the value of <metric> over the last <timespan> (uses metric and timespan from default derivation if none given)
+                         headline [--t[imespan] <timespan>] [--m[etric] <metric>] [--b[efore] <time>]]  give the headline value for a timeseries = the value of <metric> over the last <timespan> (uses metric and timespan from default derivation if none given) before <time> or now
                          trend  [time or index options]              calculate a linear regression trend over the specified period (on derived timeseries only - will use the default derivation if no derivation specified)
                          watch <event>                               watch for <event> changes
 

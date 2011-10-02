@@ -159,6 +159,7 @@ class Connection
   send: (method, path, body, callback) ->
     ##@@ if verbose?
     console.log "#{method} #{path}"
+    console.log "BODY: #{body})" if body?
 
     request = HTTP.request {host: Connection.HOST, port: Connection.PORT, method: method, path: path}, (response) =>
       err = null
