@@ -191,9 +191,9 @@ class CLI
                          version                                     show the current version of the timeseries (<num of inserts>.<num of removals>)
                          entries [time or index options]             show time, number, properties values for the raw timeseries
                          series [time or index options]              separate time and number series for the raw timeseries
-                         distribution [<bin_width>] [value options @@todo]  show distribution of values in the timeseries
+                         distribution [<bin_width>] [<first_bin_start>]  show distribution of values in the timeseries
                          draw  [time or index options]               draw an ascii timeseries (on derived timeseries only - will use the default derivation if no derivation specified)
-                         histogram  [<bin_width>] [value options @@todo]    draw an ascii histogram of the distribution
+                         histogram  [<bin_width>] [<first_bin_start>]    draw an ascii histogram of the distribution
                          headline [--t[imespan] <timespan>] [--m[etric] <metric>] [--b[efore] <time>]]  give the headline value for a timeseries = the value of <metric> over the last <timespan> (uses metric and timespan from default derivation if none given) before <time> or now
                          trend  [time or index options]              calculate a linear regression trend over the specified period (on derived timeseries only - will use the default derivation if no derivation specified)
                          watch <event>                               watch for <event> changes

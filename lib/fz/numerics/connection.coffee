@@ -45,7 +45,8 @@ class Connection
   distribution: (timeseries, args..., callback) ->
     query = {}
     if args.length > 0
-      query['w'] = args[0] ##@@ todo, support boundary query here too
+      query['w'] = args[0]
+      query['s'] = args[1]
     this.get(timeseries, 'distribution', query, callback)
 
   properties: (timeseries, callback) ->
@@ -60,7 +61,8 @@ class Connection
   histogram: (timeseries, args..., callback) ->
     query = {}
     if args.length > 0
-      query['w'] = args[0] ##@@ todo, support boundary query here too
+      query['w'] = args[0]
+      query['s'] = args[1]
     this.get(timeseries, 'histogram', query, callback)
 
   headline: (timeseries, query, callback) ->
