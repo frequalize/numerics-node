@@ -55,6 +55,8 @@ class CLI
         this.command()
       when 'create'
         this.command()
+      when 'describe'
+        this.opts_command()
       when 'erase'
         this.command()
       when 'insert'
@@ -186,6 +188,7 @@ class CLI
                          about                                       show metadata for a timeseries
                          create [<number>]                           create a new empty timeseries - only really necessary if you want to specify a specific precision with <number>, otherwise they are auto-created on insert
                          erase                                       remove all data from a timeseries and erase its metadata
+                         describe [--d <description>] [--u <units>]   set a description and the units for the timeseries -- used in the dashboard/UI
                          stats                                       show accumulated stats for timeseries
                          properties                                  list the properties used in a timeseries
                          version                                     show the current version of the timeseries (<num of inserts>.<num of removals>)

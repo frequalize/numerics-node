@@ -24,6 +24,9 @@ class Connection
   about: (timeseries, callback) ->
     this.get(timeseries, 'about', callback)
 
+  describe: (timeseries, args..., callback) ->
+    this.put(timeseries, 'describe', args..., callback)
+
   erase: (timeseries, callback) ->
     this.destroy(timeseries, callback)
 
@@ -154,6 +157,9 @@ class Connection
 
   post: (timeseries, command, args, callback) ->
     this.send('POST', [Connection.BASE_PATH, (if Array.isArray(timeseries) then timeseries.join('/') else timeseries), command].join('/'), JSON.stringify(args), callback)
+
+  put: (timeseries, command, args, callback) ->
+    this.send('PUT', [Connection.BASE_PATH, (if Array.isArray(timeseries) then timeseries.join('/') else timeseries), command].join('/'), JSON.stringify(args), callback)
 
   destroy: (timeseries, callback) ->
     this.send('DELETE', [Connection.BASE_PATH, (if Array.isArray(timeseries) then timeseries.join('/') else timeseries)].join('/'), null, callback)
