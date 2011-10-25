@@ -184,7 +184,8 @@ class Connection
           err = 'invalid server response'
         done()
 
-    request.setHeader('X-Access-Key', @access_key.key) ##@@ todo -signing
+    request.setHeader('X-Access-Key', @access_key.key)
+    request.setHeader('X-Secret-Key', @access_key.secret_key) ##@@ todo -- only if HTTPS!!!
     if false ##@@ todo - support keep_alive
       request.setHeader('Connection', 'Keep-Alive')
     else

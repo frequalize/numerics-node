@@ -179,8 +179,8 @@ class CLI
         @json_mode = true
 
   error: (err) ->
-    process.stderr.write('Error: ' + err)
-    process.stderr.write("\n")
+    console.error('Error: ' + err)
+    process.exit(1)
 
   success: (data) ->
     if @json_mode
@@ -245,8 +245,7 @@ class CLI
 
   connection: () ->
     if !@key?
-      console.error "No key or project set"
-      process.exit(1)
+      this.error("No key or project set")
     @conn ||= new Connection(@key)
 
   version: () ->
@@ -303,7 +302,7 @@ class CLI
                         stats   emits the version data and stats whenever the stats change
 
                        General options:
-                         -h                                      JSON output
+                         -j                                      JSON output @@??##todo
                          -h                                      display this and exit
                          -v(v)                                   (extra) verbose logging
                          -V                                      print version and exit
