@@ -48,7 +48,11 @@ class CLI
     (JSON.parse(fs.readFileSync(path.join(@config_dir, f))) for k, f of @key_files)
 
   projects: () ->
-    (k.project.name for k in this.keys())
+    ps = []
+    for k in this.keys()
+      pn = k.project.name
+      ps.push(pn) unless ps.indexOf(pn) > -1
+    ps
 
   list_keys: () ->
     console.log this.keys()
