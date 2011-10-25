@@ -1,12 +1,15 @@
-sys = require 'sys'
+sys  = require 'sys'
+fs   = require 'fs'
+path = require 'path'
+
 Connection = (require 'fz/numerics/connection').Connection
 
 # Fz.Numerics.CLI
 class CLI
 
-  @VERSION = '0.1'
+  @VERSION = '0.7'
 
-  constructor : () ->
+  constructor : (@config_dir='./.numerics') ->
     @executable = process.argv.shift()
     @script = process.argv.shift()
     @options = []
@@ -27,28 +30,93 @@ class CLI
       else
         @args.push arg
 
+    this.configure()
+
     this.run()
 
-  run: () ->
+  configure: () ->
+    @key_files = {}
+    for f in fs.readdirSync(@config_dir)
+      if md = f.match(/(.+)?\.json$/)
+        @key_files[md[1]] = f
 
+    current_key_file = path.join(@config_dir, 'current_key')
+    if path.existsSync(current_key_file)
+      this.set_key(fs.readFileSync(current_key_file))
+
+  keys: () ->
+    (JSON.parse(fs.readFileSync(path.join(@config_dir, f))) for k, f of @key_files)
+
+  projects: () ->
+    (k.project.name for k in this.keys())
+
+  list_keys: () ->
+    console.log this.keys()
+
+  current_key: () ->
+    if @key
+      console.log @key
+
+  set_key: (akk, write_file) ->
+    if kf = @key_files[akk]
+      @key = JSON.parse(fs.readFileSync(path.join(@config_dir, kf)))
+      if write_file
+        fs.writeFileSync(path.join(@config_dir, 'current_key'), @key.key)
+
+  list_projects: () ->
+    console.log this.projects()
+
+  current_project: () ->
+    if @key
+      console.log @key.project
+
+  set_project: (prj) ->
+    picked_key = null
+    for k in this.keys()
+      if (('' + k.project.id) == prj or k.project.name == prj) && k.permissions == 'rwm'
+        picked_key = k
+        break
+    if picked_key
+      this.set_key(picked_key.key, true)
+    else
+      console.error "No key with rwm permissions for project #{prj} -- use key command instead"
+
+  run: () ->
     this.process_options()
 
     @timeseries = @args.shift()
-
     @cmd = @args.shift()
 
-    if 'list' == @timeseries && !@cmd?
+    if {list: true, keys: true, projects: true}[@timeseries] and !@cmd?
+      @cmd = @timeseries
       @timeseries = null
-      @cmd = 'list'
+    else if {key: true, project: true}[@timeseries]
+      @internal_arg = @cmd
+      @cmd = @timeseries
+      @timeseries = null
 
     if @cmd? && @cmd.match(/\//)
       @timeseries = [@timeseries, @cmd] # cmd is really a derivation spec
       @cmd = @args.shift()
 
     if @timeseries? && !@cmd?
-      @cmd = 'headline' ## default
+      @cmd = 'about' ## default
 
     switch @cmd
+      when 'keys'
+        this.list_keys()
+      when 'key'
+        if @internal_arg
+          this.set_key(@internal_arg, true)
+        else
+          this.current_key()
+      when 'projects'
+        this.list_projects()
+      when 'project'
+        if @internal_arg
+          this.set_project(@internal_arg)
+        else
+          this.current_project()
       when 'list'
         this.command()
       when 'about'
@@ -164,6 +232,7 @@ class CLI
     this.connection().subscribe @timeseries, @args..., (version, stats) =>
       this.success([version, stats])
 
+  ##@@ TODO
   logger: () ->
     @lgr ||= if @log_level
                null
@@ -171,7 +240,10 @@ class CLI
                null
 
   connection: () ->
-    @conn ||= new Connection(this.logger())
+    if !@key?
+      console.error "No key or project set"
+      process.exit(1)
+    @conn ||= new Connection(@key)
 
   version: () ->
     sys.puts "#{@script} v#{CLI.VERSION}"

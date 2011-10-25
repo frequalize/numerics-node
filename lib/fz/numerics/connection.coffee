@@ -11,7 +11,7 @@ class Connection
   @BASE_PATH: '/ts'
   @EVENT_RESOURCE: 'event'
 
-  constructor : () ->
+  constructor : (@access_key) ->
 
   ## Commands ##
 
@@ -184,7 +184,7 @@ class Connection
           err = 'invalid server response'
         done()
 
-    request.setHeader('X-Access-Key', 'master_test') ##@@ TODO
+    request.setHeader('X-Access-Key', @access_key.key) ##@@ todo -signing
     if false ##@@ todo - support keep_alive
       request.setHeader('Connection', 'Keep-Alive')
     else
