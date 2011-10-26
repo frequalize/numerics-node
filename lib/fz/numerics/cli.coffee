@@ -246,7 +246,7 @@ class CLI
   connection: () ->
     if !@key?
       this.error("No key or project set")
-    @conn ||= new Connection(@key)
+    @conn ||= new Connection(@key.key, @key.secret_key)
 
   version: () ->
     sys.puts "#{@script} v#{CLI.VERSION}"

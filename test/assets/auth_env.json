@@ -1,0 +1,1 @@
+{"production": {"access_key": "blah", "secret_key": "moreblah"}, "development": {"access_key": "foo", "secret_key": "foobar"}}
