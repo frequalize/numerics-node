@@ -224,7 +224,7 @@ class CLI
           this.json_command(data[i])
           i++
           if i < data.length
-            setTimeout(run_next, 500)
+            setTimeout(run_next, 10)
         run_next()
       else
         @args = [data[1], data[0], data[2]] ## careful - time and number are the other way around in the output than in the args to connection.insert|remove
@@ -233,8 +233,11 @@ class CLI
       throw "can't deal with json input that looks like that"
 
   watch_command: () ->
-    this.connection().subscribe @timeseries, @args..., (version, stats) =>
-      this.success([version, stats])
+    if @args.length > 0
+      this.connection().subscribe @timeseries, @args..., (data) =>
+        this.success(data)
+    else
+      this.help(1, true)
 
   ##@@ TODO
   logger: () ->
@@ -309,7 +312,7 @@ class CLI
 
                '''
     process.stdout.flush =>
-      status = 1 unless stats?
+      status = 1 unless status?
       process.exit status
 
 

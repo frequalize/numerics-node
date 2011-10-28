@@ -209,11 +209,20 @@ class Connection
     this.with_ws_client (ws) =>
       ws.emit('message', ['subscribe', timeseries, events])
 
+  ws_client_url: () ->
+    url_parts = ['ws:', Connection.HOST, ':', Connection.PORT, '?ak=', @access_key]
+    ##@@ todo -- only if HTTPS!!
+    url_parts.push('&')
+    url_parts.push('sk')
+    url_parts.push('=')
+    url_parts.push(@secret_key)
+    url_parts.join('')
+
   with_ws_client: (callback) ->
     if @ws
       callback(@ws)
     else
-      this.setup_ws_client(SIO.connect("ws:#{Connection.HOST}:#{Connection.PORT}", {resource: Connection.EVENT_RESOURCE, transports: ['websocket']}), callback)
+      this.setup_ws_client(SIO.connect(this.ws_client_url(), {resource: Connection.EVENT_RESOURCE, transports: ['websocket']}), callback)
 
   setup_ws_client: (ws, callback) ->
     ws.on 'connect', () =>
