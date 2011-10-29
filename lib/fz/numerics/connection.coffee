@@ -1,4 +1,4 @@
-HTTP = require 'http'
+HTTPS = require 'https'
 QS   = require('querystring')
 
 SIO = require('socket.io-client')
@@ -169,7 +169,7 @@ class Connection
     console.log "#{method} #{path}"
     console.log "BODY: #{body})" if body?
 
-    request = HTTP.request {host: Connection.HOST, port: Connection.PORT, method: method, path: path}, (response) =>
+    request = HTTPS.request {host: Connection.HOST, port: Connection.PORT, method: method, path: path}, (response) =>
       err = null
       data = null
       done = -> callback(err, data) if callback
@@ -210,7 +210,7 @@ class Connection
       ws.emit('message', ['subscribe', timeseries, events])
 
   ws_client_url: () ->
-    url_parts = ['ws:', Connection.HOST, ':', Connection.PORT, '?ak=', @access_key]
+    url_parts = ['wss:', Connection.HOST, ':', Connection.PORT, '?ak=', @access_key]
     ##@@ todo -- only if HTTPS!!
     url_parts.push('&')
     url_parts.push('sk')
@@ -222,13 +222,15 @@ class Connection
     if @ws
       callback(@ws)
     else
-      this.setup_ws_client(SIO.connect(this.ws_client_url(), {resource: Connection.EVENT_RESOURCE, transports: ['websocket']}), callback)
+      SIO.transports = ['xhr-polling'] ## temp until node web socket implementation supports secure
+      this.setup_ws_client(SIO.connect(this.ws_client_url(), {resource: Connection.EVENT_RESOURCE, secure: true}), callback)
 
   setup_ws_client: (ws, callback) ->
     ws.on 'connect', () =>
       @ws = ws
       callback(ws)
     ws.on 'disconnect', () =>
+      console.error 'ws disconnect'
       @ws = null
     ws.on 'message', (msg) =>
       [ts, event, data...] = msg
@@ -236,6 +238,7 @@ class Connection
         cb(data...) for cb in @subscriptions[ts][event]
       else
         console.error 'invalid server response'
-
+    ws.on 'error', (err) =>
+      console.error 'ws error', err
 
 exports.Connection = Connection
