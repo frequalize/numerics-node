@@ -2,7 +2,6 @@
   var Numerics, all, assert, test_invalid, test_json, test_json_env, test_object;
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   assert = require('assert');
-  require.paths.unshift(__dirname + '/../lib');
   Numerics = require('fz/numerics').Numerics;
   test_json = function() {
     var conn;

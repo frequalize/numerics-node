@@ -1,4 +1,3 @@
-sys  = require 'sys'
 fs   = require 'fs'
 path = require 'path'
 
@@ -7,7 +6,7 @@ Connection = (require 'fz/numerics/connection').Connection
 # Fz.Numerics.CLI
 class CLI
 
-  @VERSION = '0.7'
+  @VERSION = '0.8'
 
   constructor : (@config_dir='./.numerics') ->
     @executable = process.argv.shift()
@@ -91,7 +90,7 @@ class CLI
     @timeseries = @args.shift()
     @cmd = @args.shift()
 
-    if {list: true, keys: true, projects: true}[@timeseries] and !@cmd?
+    if {list: true, keys: true, projects: true, help: true}[@timeseries] and !@cmd?
       @cmd = @timeseries
       @timeseries = null
     else if {key: true, project: true}[@timeseries]
@@ -157,6 +156,8 @@ class CLI
         this.opts_command()
       when 'watch'
         this.watch_command()
+      when 'help'
+        this.help()
       else
         this.help(1, true)
 
@@ -177,6 +178,8 @@ class CLI
         @read_mode = true
       when'j'
         @json_mode = true
+      when't'
+        @throttle = true
 
   error: (err) ->
     console.error('Error: ' + err)
@@ -224,7 +227,10 @@ class CLI
           this.json_command(data[i])
           i++
           if i < data.length
-            setTimeout(run_next, 10)
+            if @throttle
+              setTimeout(run_next, 500)
+            else
+              run_next()
         run_next()
       else
         @args = [data[1], data[0], data[2]] ## careful - time and number are the other way around in the output than in the args to connection.insert|remove
@@ -249,71 +255,87 @@ class CLI
   connection: () ->
     if !@key?
       this.error("No key or project set")
-    @conn ||= new Connection(@key.key, @key.secret_key)
+    @conn ||= new Connection(@key.key, @key.secret_key, @key.host, @key.port)
 
   version: () ->
-    sys.puts "#{@script} v#{CLI.VERSION}"
+    console.log "#{@script.match(/.*\/(.+?)$/)[1]} v#{CLI.VERSION}"
     process.exit()
 
   help: (status, short) ->
-    console.log '$ numerics [-h -v[v] -j ] [<timeseries>] [<metric>[<suffix>]/<timespan>] <command> [<arg1> ...] [<command options>]'
-    unless short
-      console.log '''
-                       Commands:
-                         list                                        list your timeseries (no <timeseries> arg in this case)
-                         insert [<number>] [<time>] [<properties>]   insert a value into the timeseries -- args can be ommited, a missing number means 1, a missing times means now
-                         remove [<number>] [<time>] [<properties>]   remove -- args can only be ommited if the default would match what needs to be removed
-                         about                                       show metadata for a timeseries
-                         create [<number>]                           create a new empty timeseries - only really necessary if you want to specify a specific precision with <number>, otherwise they are auto-created on insert
-                         erase                                       remove all data from a timeseries and erase its metadata
-                         describe [--d <description>] [--u <units>]   set a description and the units for the timeseries -- used in the dashboard/UI
-                         stats                                       show accumulated stats for timeseries
-                         properties                                  list the properties used in a timeseries
-                         version                                     show the current version of the timeseries (<num of inserts>.<num of removals>)
-                         entries [time or index options]             show time, number, properties values for the raw timeseries
-                         series [time or index options]              separate time and number series for the raw timeseries
-                         distribution [<bin_width>] [<first_bin_start>]  show distribution of values in the timeseries
-                         draw  [time or index options]               draw an ascii timeseries (on derived timeseries only - will use the default derivation if no derivation specified)
-                         histogram  [<bin_width>] [<first_bin_start>]    draw an ascii histogram of the distribution
-                         headline [--t[imespan] <timespan>] [--m[etric] <metric>] [--b[efore] <time>]]  give the headline value for a timeseries = the value of <metric> over the last <timespan> (uses metric and timespan from default derivation if none given) before <time> or now
-                         trend  [time or index options]              calculate a linear regression trend over the specified period (on derived timeseries only - will use the default derivation if no derivation specified)
-                         watch <event>                               watch for <event> changes
+    text = [
+      ' $ numerics [switches] [<timeseries>] [<metric>[<suffix>]/<timespan>] <command> [args...] [<command options>]',
+      '',
+      '  Commands:',
+      '',
+      '    list                                        list your timeseries (no <timeseries> arg in this case)',
+      '    about                                       show metadata for a timeseries',
+      '',
+      '    insert [<number>] [<time>] [<properties>]   insert a value into the timeseries -- args can be ommited, a missing number means 1, a missing times means now',
+      '    remove [<number>] [<time>] [<properties>]   remove -- args can only be ommited if the default would match what needs to be removed',
+      '    create [<number>]                           create a new empty timeseries - only necessary if you want to specify a specific precision (<number>)',
+      '                                                  otherwise timeseries are auto-created on insert',
+      '    erase                                       remove all data from a timeseries and erase its metadata',
+      '    describe [--d <description>] [--u <units>]  set a description and the units for the timeseries -- used in the dashboard/UI',
+      '',
+      '    stats                                       show accumulated stats for timeseries',
+      '    properties                                  list the properties used in a timeseries',
+      '    version                                     show the current version data for the timeseries',
+      '',
+      '    entries [time/index options]                show time, number, properties values for the raw timeseries',
+      '    series [time/index options]                 separate time and number series for the raw timeseries',
+      ''
+      '    distribution [<bin_width>] [<first_bin_start>]  show distribution of values in the timeseries',
+      '    headline [--t <timespan>] [--m <metric>] [--b <time>]]  give the headline value for a timeseries = the value of <metric> over the last <timespan>',
+      '                                                              before <time> or now - uses metric and timespan from default derivation if none given',
+      '    trend  [time/index options]                 calculate a linear regression trend over the specified period (derived timeseries only - will use the',
+      '                                                  default derivation if no derivation specified)',
+      '    watch <event>                               watch for <event> changes',
+      '',
+      '    draw  [time or index options]               draw an ascii timeseries (derived timeseries only - default derivation used if no derivation specified)',
+      '    histogram  [<bin_width>] [<first_bin_start>]    draw an ascii histogram of the distribution',
+      '',
+      '  Derived timeseries:',
+      '',
+      '    <metric>[<suffix>]/<timespan>               derive a normalized timeseries = one entry for every <timespan> of the original series, with multiple entries being aggregated according to <metric>',
+      '      metric values:                            mean, total, count, median, etc@@',
+      '      suffix values:                            +, - or %  (+ indicates a cumulative aggregation, - a step-wise difference, % the percentage drift from stating datum)',
+      '      timespan values:                          day, minute, second, month, year @@@etc or 7day, 40minute, etc',
+      '',
+      '  Command options:',
+      '',
+      '    time/index options:',
+      '      --from                                    start time',
+      '      --to                                      end time @@inclusive @@???',
+      '      --start                                   start index (can be negative to count from end)',
+      '      --end                                     end index @@inclusive @@??? (can be negative to count from end)',
+      '      --limit                                   max mumber of entries to return',
+      '    examples:',
+      '      --limit 10                                the last 10 entries',
+      '      --from "2011-01-01" --to "2011-02-01"     all entries in Jan 2011 @@inclusive? fix',
+      '      --to yesterday --limit 10                 the last 10 entries before yesterday @@ todo',
+      '      --start 0 --end 100                       the first @@@101 (fix inclusive??) entries',
+      '      --start -10                               the last 10@@check entries',
+      '',
+      '    events:',
+      '      version   emits the version data whenever an entry is added or removed',
+      '',
+      '  Switches:',
+      '',
+      '    -h                                          display this and exit',
+      '    -V                                          print version and exit',
+      '    -v(v)                                       (extra) verbose logging',
+      '    -                                           read the args for the command from stdin - piping in a JSON array of arrays allows multiple calls',
+      '    -t                                          throttle requests (2 per second) when reading args from stdin',
+      '    -j                                          JSON output @@??##todo',
+      ''
+    ]
 
-                         <metric>[<suffix>]/<timespan>               derive a normalized timeseries = one entry for every <timespan> of the original series, with multiple entries being aggregated according to <metric>
-                          <metric> values:  mean, total, count, median, etc@@
-                          <suffix> values: +, - or % => + indicates a cumulative aggregation, - a step-wise difference, % the percentage drift from stating datum
-                          <timespan> values:  day, minute, second, month, year @@@etc or 7day, 40minute etc
+    if short
+      console.log text[0]
+    else
+      console.log text.join("\n")
 
-                       Command options:
-                        time/index options:
-                         --from   start time
-                         --to     end time @@inclusive @@???
-                         --start  start index (can be negative to count from end)
-                         --end    end index @@inclusive @@??? (can be negative to count from end)
-                         --limit  max mumber of entries to return
-                        examples:
-                          --limit 10 => the last 10 entries
-                          --from "2011-01-01" --to "2011-02-01" => all entries in Jan 2011 @@inclusive? fix
-                          --to yesterday --limit 10 => the last 10 entries before yesterday @@ todo
-                          --start 0 --end 100 => the first @@@101 (fix inclusive??) entries
-                          --start -10 => the last 10@@check entries
-
-                        Value options:
-                         @@todo
-
-                       Events:
-                        stats   emits the version data and stats whenever the stats change
-
-                       General options:
-                         -j                                      JSON output @@??##todo
-                         -h                                      display this and exit
-                         -v(v)                                   (extra) verbose logging
-                         -V                                      print version and exit
-
-               '''
-    process.stdout.flush =>
-      status = 1 unless status?
-      process.exit status
-
+    status = 1 unless status?
+    process.exit status
 
 exports.CLI = CLI

@@ -6,12 +6,12 @@ SIO = require('socket.io-client')
 # Fz.Numerics.Connection
 class Connection
 
-  @HOST : '127.0.0.1'
-  @PORT : 9000
+  @HOST : 'api.numerics.io'
+  @PORT : 443
   @BASE_PATH: '/ts'
   @EVENT_RESOURCE: 'event'
 
-  constructor : (@access_key, @secret_key) ->
+  constructor : (@access_key, @secret_key, @host=Connection.HOST, @port=Connection.PORT) ->
 
   ## Commands ##
 
@@ -169,7 +169,7 @@ class Connection
     console.log "#{method} #{path}"
     console.log "BODY: #{body})" if body?
 
-    request = HTTPS.request {host: Connection.HOST, port: Connection.PORT, method: method, path: path}, (response) =>
+    request = HTTPS.request {host: @host, port: @port, method: method, path: path}, (response) =>
       err = null
       data = null
       done = -> callback(err, data) if callback
@@ -210,7 +210,7 @@ class Connection
       ws.emit('message', ['subscribe', timeseries, events])
 
   ws_client_url: () ->
-    url_parts = ['wss:', Connection.HOST, ':', Connection.PORT, '?ak=', @access_key]
+    url_parts = ['wss:', @host, ':', @port, '?ak=', @access_key]
     ##@@ todo -- only if HTTPS!!
     url_parts.push('&')
     url_parts.push('sk')

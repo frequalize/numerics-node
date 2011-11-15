@@ -1,6 +1,5 @@
 assert = require 'assert'
 
-require.paths.unshift( __dirname + '/../lib');
 Numerics = require('fz/numerics').Numerics
 
 test_json = () ->
