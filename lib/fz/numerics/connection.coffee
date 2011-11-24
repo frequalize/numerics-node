@@ -6,6 +6,8 @@ SIO = require('socket.io-client')
 # Fz.Numerics.Connection
 class Connection
 
+  @VERSION : '0.6.0'
+
   @HOST : 'api.numerics.io'
   @PORT : 443
   @BASE_PATH: '/ts'
@@ -184,6 +186,7 @@ class Connection
           err = 'invalid server response'
         done()
 
+    request.setHeader('User-Agent', 'numerics-node v' + Connection.VERSION)
     request.setHeader('X-Access-Key', @access_key)
     request.setHeader('X-Secret-Key', @secret_key) ##@@ todo -- only if HTTPS!!!
     if false ##@@ todo - support keep_alive
