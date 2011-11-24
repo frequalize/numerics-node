@@ -29,21 +29,35 @@ class CLI
       else
         @args.push arg
 
-    this.configure()
-
     this.run()
 
-  configure: () ->
-    @key_files = {}
-    for f in fs.readdirSync(@config_dir)
-      if md = f.match(/(.+)?\.json$/)
-        @key_files[md[1]] = f
+  ensure_config: () ->
+    if !@key_files?
+      if path.existsSync(@config_dir)
+        @key_files = {}
+        for f in fs.readdirSync(@config_dir)
+          if md = f.match(/(.+)?\.json$/)
+            @key_files[md[1]] = f
 
-    current_key_file = path.join(@config_dir, 'current_key')
-    if path.existsSync(current_key_file)
-      this.set_key(fs.readFileSync(current_key_file))
+        current_key_file = path.join(@config_dir, 'current_key')
+        if path.existsSync(current_key_file)
+          this.set_key(fs.readFileSync(current_key_file))
+      else
+        this.error "No #{@config_dir} directory found\n" +
+          " To configure numerics, create the #{@config_dir} directory\n" +
+          " and copy access key JSON files into it from https://numerics.io/"
+
+  ensure_key: () ->
+    this.ensure_config()
+    if !@key?
+      this.error "No current key/project set, use:\n" +
+        " $ numerics key <access key>\n" +
+        "  or:\n" +
+        " $ numerics project <project name or id>\n" +
+        "  to set."
 
   keys: () ->
+    this.ensure_config()
     (JSON.parse(fs.readFileSync(path.join(@config_dir, f))) for k, f of @key_files)
 
   projects: () ->
@@ -61,10 +75,13 @@ class CLI
       console.log @key
 
   set_key: (akk, write_file) ->
+    this.ensure_config()
     if kf = @key_files[akk]
       @key = JSON.parse(fs.readFileSync(path.join(@config_dir, kf)))
       if write_file
         fs.writeFileSync(path.join(@config_dir, 'current_key'), @key.key)
+    else
+      this.error "Unknown key: #{akk}"
 
   list_projects: () ->
     console.log this.projects()
@@ -253,8 +270,7 @@ class CLI
                null
 
   connection: () ->
-    if !@key?
-      this.error("No key or project set")
+    this.ensure_key()
     @conn ||= new Connection(@key.key, @key.secret_key, @key.host, @key.port)
 
   version: () ->
@@ -327,6 +343,16 @@ class CLI
       '    -                                           read the args for the command from stdin - piping in a JSON array of arrays allows multiple calls',
       '    -t                                          throttle requests (2 per second) when reading args from stdin',
       '    -j                                          JSON output @@??##todo',
+      '',
+      '  Configuration commands:',
+      '',
+      '    key [<access_key>]                          show or set the access key used to connect to numerics.io',
+      '                                                 There must be file named <access_key>.json in a directory named .numerics in the current directory',
+      '                                                 <access_key>.json files can be downloaded from https://numerics.io',
+      '    project [<access name or id>]               show or set the access key used to connect to numerics.io by nameing the project or giving the  project id',
+      '                                                 There must be .json file in the .numerics directory with matching details and with rwm permissions',
+      '    keys                                        show the keys avilable to use (= .json files in .numerics)',
+      '    projects                                    show the project names avilable to use (= .json files in .numerics)',
       ''
     ]
 
