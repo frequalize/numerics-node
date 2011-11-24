@@ -1,10 +1,10 @@
 fs = require('fs')
-Connection = require('fz/numerics/connection').Connection
+Connection = require('./numerics/connection').Connection
 
-# Fz.Numerics
+# Numerics
 exports.Numerics =
   Connection: Connection
-  CLI: (require 'fz/numerics/cli').CLI
+  CLI: (require './numerics/cli').CLI
 
   connect: (arg, env) ->
     config = if 'string' == typeof arg

@@ -1,9 +1,9 @@
 fs   = require 'fs'
 path = require 'path'
 
-Connection = (require 'fz/numerics/connection').Connection
+Connection = (require './connection').Connection
 
-# Fz.Numerics.CLI
+# Numerics.CLI
 class CLI
 
   @VERSION = '0.8'

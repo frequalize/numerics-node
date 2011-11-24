@@ -1,6 +1,6 @@
 assert = require 'assert'
 
-Numerics = require('fz/numerics').Numerics
+Numerics = require('numerics').Numerics
 
 test_json = () ->
   conn = Numerics.connect('test/assets/auth.json')

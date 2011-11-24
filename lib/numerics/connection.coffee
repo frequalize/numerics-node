@@ -3,7 +3,7 @@ QS   = require('querystring')
 
 SIO = require('socket.io-client')
 
-# Fz.Numerics.Connection
+# Numerics.Connection
 class Connection
 
   @VERSION : '0.6.0'
