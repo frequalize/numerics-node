@@ -71,8 +71,8 @@ class CLI
     console.log this.keys()
 
   current_key: () ->
-    if @key
-      console.log @key
+    this.ensure_key()
+    console.log @key
 
   set_key: (akk, write_file) ->
     this.ensure_config()
@@ -87,8 +87,8 @@ class CLI
     console.log this.projects()
 
   current_project: () ->
-    if @key
-      console.log @key.project
+    this.ensure_key()
+    console.log @key.project
 
   set_project: (prj) ->
     picked_key = null
@@ -212,8 +212,11 @@ class CLI
   command: () ->
     this.connection()[@cmd] @timeseries, @args..., (err, data) =>
       if err
+        #console.error "error on #{@cmd} #{@timeseries}, #{@args}"
         this.error(err)
       else
+        #if false == data
+        #  console.error "error on #{@cmd} #{@timeseries}, #{@args}"
         this.success(data)
 
   opts_command: () ->
