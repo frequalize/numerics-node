@@ -47,6 +47,9 @@ class Connection
   stats: (timeseries, args..., callback) ->
     this.get(timeseries, 'stats', args..., callback)
 
+  stats_per: (timeseries, query, callback) ->
+    this.get(timeseries, 'stats_per', query, callback)
+
   distribution: (timeseries, args..., callback) ->
     query = {}
     if args.length > 0

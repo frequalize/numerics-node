@@ -119,6 +119,10 @@ class CLI
       @timeseries = [@timeseries, @cmd] # cmd is really a derivation spec
       @cmd = @args.shift()
 
+    else if @cmd? && @cmd.match(/\=/)
+      @timeseries = [@timeseries, @cmd] # cmd is really a filter
+      @cmd = @args.shift()
+
     if @timeseries? && !@cmd?
       @cmd = 'about' ## default
 
@@ -157,6 +161,8 @@ class CLI
         this.opts_command()
       when 'stats'
         this.command()
+      when 'stats_per'
+        this.opts_command()
       when 'distribution'
         this.command()
       when 'properties'
@@ -282,7 +288,7 @@ class CLI
 
   help: (status, short) ->
     text = [
-      ' $ numerics [switches] [<timeseries>] [<metric>[<suffix>]/<timespan>] <command> [args...] [<command options>]',
+      ' $ numerics [switches] [<timeseries>] [<metric>[<suffix>]/<timespan> | <property>=[<value>]] <command> [args...] [<command options>]',
       '',
       '  Commands:',
       '',
@@ -298,6 +304,9 @@ class CLI
       '',
       '    stats                                       show accumulated stats for timeseries',
       '    properties                                  list the properties used in a timeseries',
+      '    stats_per --p <property>                    show accumulated stats for the timeseries, but using the number of unique values of <property>',
+      '                                                    as the count, not the number of entries. Note that the total will be the total for all entries,',
+      '                                                    not just those with the property -- if you want that, filter the ts too',
       '    version                                     show the current version data for the timeseries',
       '',
       '    entries [time/index options]                show time, number, properties values for the raw timeseries',
@@ -319,6 +328,10 @@ class CLI
       '      metric values:                            mean, total, count, median, etc@@',
       '      suffix values:                            +, - or %  (+ indicates a cumulative aggregation, - a step-wise difference, % the percentage drift from stating datum)',
       '      timespan values:                          day, minute, second, month, year @@@etc or 7day, 40minute, etc',
+      '',
+      '  Filtered timeseries:',
+      '',
+      '    <property>=[<value>]                        filtered timeseries taking only entries from the original that have the property <property>, and the <value> if present',
       '',
       '  Command options:',
       '',
