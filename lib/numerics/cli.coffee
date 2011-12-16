@@ -162,7 +162,11 @@ class CLI
       when 'stats'
         this.command()
       when 'stats_per'
-        this.opts_command()
+        this.command()
+      when 'stats_without_zeros'
+        this.command()
+      when 'tally_of'
+        this.command()
       when 'distribution'
         this.command()
       when 'properties'
@@ -304,9 +308,11 @@ class CLI
       '',
       '    stats                                       show accumulated stats for timeseries',
       '    properties                                  list the properties used in a timeseries',
-      '    stats_per --p <property>                    show accumulated stats for the timeseries, but using the number of unique values of <property>',
+      '    stats_per <property>                        show accumulated stats for the timeseries, but using the number of unique values of <property>',
       '                                                    as the count, not the number of entries. Note that the total will be the total for all entries,',
       '                                                    not just those with the property -- if you want that, filter the ts too',
+      '    stats_without_zeros                         show accumulated stats for timeseries, but ignoring any values of zero in the timeseries',
+      '    tally_of <value>                            show the number of times <value> appears in the timeseries',
       '    version                                     show the current version data for the timeseries',
       '',
       '    entries [time/index options]                show time, number, properties values for the raw timeseries',

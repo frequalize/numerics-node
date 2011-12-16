@@ -47,8 +47,17 @@ class Connection
   stats: (timeseries, args..., callback) ->
     this.get(timeseries, 'stats', args..., callback)
 
-  stats_per: (timeseries, query, callback) ->
-    this.get(timeseries, 'stats_per', query, callback)
+  stats_per: (timeseries, property_name, callback) ->
+    this.get(timeseries, 'stats_per', {p: property_name}, callback)
+
+  stats_without_zeros: (timeseries, args..., callback) ->
+    this.get(timeseries, 'stats_without_zeros', args..., callback)
+
+  tally_of: (timeseries, args..., callback) ->
+    query = {}
+    if args.length > 0
+      query['v'] = args[0]
+    this.get(timeseries, 'tally_of', query, callback)
 
   distribution: (timeseries, args..., callback) ->
     query = {}
