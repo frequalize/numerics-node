@@ -1,0 +1,17 @@
+{ "name": "numerics"
+,  "version": "0.8.1"
+,  "main": "lib/numerics"
+,  "files":["lib/numerics.js", "lib/numerics/connection.js", "lib/numerics/cli.js", "bin/numerics"]
+,  "bin": "bin/numerics"
+,  "description": "Client library for the numerics.io custom metrics API"
+,  "homepage": "http://github.com/frequalize/numerics-node"
+,  "repository" :
+     { "type" : "git"
+     , "url" : "http://github.com/frequalize/numerics-node.git"
+     }
+,  "authors" : {"name" : "Ben Lund"}
+,  "dependencies" : { "socket.io-client" : "*" }
+,  "engines" : { "node" : ">=0.6.1" }
+,  "preferGlobal" : true
+
+}

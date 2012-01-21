@@ -6,7 +6,7 @@ Connection = (require './connection').Connection
 # Numerics.CLI
 class CLI
 
-  @VERSION = '0.8'
+  @VERSION = '0.8.1'
 
   constructor : (@config_dir='./.numerics') ->
     @executable = process.argv.shift()
